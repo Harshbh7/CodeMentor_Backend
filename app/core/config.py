@@ -113,6 +113,7 @@ class Settings(BaseSettings):
     # ----------------------------------------------------------
     chroma_host: str = Field(default="localhost", description="ChromaDB host")
     chroma_port: int = Field(default=8001, description="ChromaDB port")
+    chroma_ssl: bool = Field(default=False, description="Enable SSL/HTTPS for ChromaDB client")
     chroma_persist_dir: str = Field(
         default="./chroma_data",
         description="Local persistence directory for ChromaDB when not using HTTP mode",

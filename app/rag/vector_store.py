@@ -78,6 +78,7 @@ class VectorStore:
                     _global_client = chromadb.HttpClient(
                         host=settings.chroma_host,
                         port=settings.chroma_port,
+                        ssl=settings.chroma_ssl,
                         settings=ChromaSettings(
                             anonymized_telemetry=False,
                             allow_reset=True,  # Enable in dev for clean resets
