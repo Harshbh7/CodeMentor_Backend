@@ -175,6 +175,15 @@ class Settings(BaseSettings):
     )
 
     # ----------------------------------------------------------
+    # CORS Settings
+    # ----------------------------------------------------------
+    cors_origins: str = Field(
+        default="*",
+        description="Comma-separated list of allowed CORS origins, or * for all",
+    )
+
+
+    # ----------------------------------------------------------
     # Derived Helpers
     # ----------------------------------------------------------
     @property

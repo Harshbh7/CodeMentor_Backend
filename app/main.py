@@ -138,10 +138,11 @@ def create_application() -> FastAPI:
     # ----------------------------------------------------------
 
     # CORS — Allow cross-origin requests from the frontend
-    # In production, restrict `allow_origins` to your specific frontend domain
+    # In production, restrict `allow_origins` to your specific frontend domain(s)
+    origins = [o.strip() for o in settings.cors_origins.split(",") if o.strip()]
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"] if settings.is_development else ["https://yourdomain.com"],
+        allow_origins=origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
         allow_headers=["*"],
