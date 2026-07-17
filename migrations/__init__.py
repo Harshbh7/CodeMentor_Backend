@@ -1,0 +1,3 @@
+"""
+CodeMentor AI - Migrations Package
+"""

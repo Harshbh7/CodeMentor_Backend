@@ -1,0 +1,161 @@
+# ==============================================================
+# CodeMentor AI - Docker Compose
+# Local development environment with all dependencies.
+#
+# Services:
+#   - api:      FastAPI application
+#   - postgres: PostgreSQL 16 database
+#   - chromadb: ChromaDB vector store
+#   - valkey:   Valkey cache (drop-in Redis replacement)
+#
+# Usage:
+#   Start all:       docker compose up -d
+#   Stop all:        docker compose down
+#   View logs:       docker compose logs -f api
+#   Reset DB:        docker compose down -v  (WARNING: deletes data!)
+# ==============================================================
+
+version: "3.9"
+
+# ==============================================================
+# Named Volumes (persistent data survives container restarts)
+# ==============================================================
+volumes:
+  postgres_data:
+    driver: local
+  chroma_data:
+    driver: local
+  valkey_data:
+    driver: local
+
+# ==============================================================
+# Networks (containers communicate via internal DNS)
+# ==============================================================
+networks:
+  codementor_network:
+    driver: bridge
+
+# ==============================================================
+# Services
+# ==============================================================
+services:
+
+  # ------------------------------------------------------------
+  # PostgreSQL 16
+  # ------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: codementor_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-codementor_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-codementor_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-codementor_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - codementor_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-codementor_user} -d ${POSTGRES_DB:-codementor_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ------------------------------------------------------------
+  # ChromaDB Vector Database
+  # ------------------------------------------------------------
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: codementor_chromadb
+    restart: unless-stopped
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+      ANONYMIZED_TELEMETRY: "FALSE"   # Disable telemetry
+    ports:
+      - "${CHROMA_PORT:-8001}:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+    networks:
+      - codementor_network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/api/v1/heartbeat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+  # ------------------------------------------------------------
+  # Valkey (Optional - Caching & Sessions)
+  # ------------------------------------------------------------
+  valkey:
+    image: valkey/valkey:7.2-alpine
+    container_name: codementor_valkey
+    restart: unless-stopped
+    command: >
+      valkey-server
+      --requirepass ${VALKEY_PASSWORD:-}
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - codementor_network
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ------------------------------------------------------------
+  # CodeMentor AI FastAPI Application
+  # ------------------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime   # Use the runtime stage of multi-stage build
+    container_name: codementor_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      # Override host values to use Docker service names (internal DNS)
+      POSTGRES_HOST: postgres
+      CHROMA_HOST: chromadb
+      VALKEY_HOST: valkey
+    ports:
+      - "${PORT:-8000}:8000"
+    volumes:
+      # Mount app code for hot-reload in development
+      - ./app:/app/app
+      - ./uploads:/app/uploads
+    networks:
+      - codementor_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      chromadb:
+        condition: service_started
+      valkey:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    # Development: use --reload for hot-reload
+    # Production: remove --reload and increase --workers
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --log-level info

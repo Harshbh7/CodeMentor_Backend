@@ -1,0 +1,71 @@
+# ==============================================================
+# CodeMentor AI .gitignore
+# ==============================================================
+
+# Environment & secrets — NEVER commit these
+.env
+*.env
+.env.local
+.env.*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Docker
+.docker/
+
+# ChromaDB data
+chroma_data/
+
+# Uploads
+uploads/
+
+# Alembic (keep structure, not generated data)
+# migrations/versions/*.py  # Uncomment if you don't want to commit migrations
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend (now in a separate repository)
+frontend/
+
