@@ -130,20 +130,14 @@ def _build_genai_contents(messages: list) -> list:
                 if msg.content:
                     parts.append(genai_types.Part.from_text(text=msg.content))
                 for tc in msg.additional_kwargs["tool_calls"]:
-                    part = genai_types.Part.from_function_call(
-                        name=tc["name"],
-                        args=tc["args"],
+                    part = genai_types.Part(
+                        function_call=genai_types.FunctionCall(
+                            name=tc["name"],
+                            args=tc["args"],
+                            id=tc.get("id", ""),
+                        ),
+                        thought_signature=tc.get("thought_signature"),
                     )
-                    # Re-attach thought_signature if it was saved
-                    if tc.get("thought_signature"):
-                        part = genai_types.Part(
-                            function_call=genai_types.FunctionCall(
-                                name=tc["name"],
-                                args=tc["args"],
-                                id=tc.get("id", ""),
-                            ),
-                            thought_signature=tc["thought_signature"],
-                        )
                     parts.append(part)
                 contents.append(
                     genai_types.Content(role="model", parts=parts)
@@ -215,20 +209,6 @@ def think_node(state: AgentState) -> dict[str, Any]:
         # Convert conversation history to Gemini Content objects
         contents = _build_genai_contents(state["messages"])
 
-        # Debug contents construction
-        debug_lines = []
-        for idx, content in enumerate(contents):
-            debug_lines.append(f"Content {idx} ({content.role}):")
-            for p_idx, p in enumerate(content.parts):
-                if p.text:
-                    debug_lines.append(f"  Part {p_idx} TEXT: {p.text[:60]}")
-                elif p.function_call:
-                    thought_sig_val = getattr(p, "thought_signature", None)
-                    debug_lines.append(f"  Part {p_idx} FunctionCall: name={p.function_call.name} id={p.function_call.id} thought_sig_type={type(thought_sig_val)} thought_sig_len={len(thought_sig_val) if thought_sig_val else 0}")
-                elif p.function_response:
-                    debug_lines.append(f"  Part {p_idx} FunctionResponse: name={p.function_response.name} id={p.function_response.id}")
-        debug_str = "\n".join(debug_lines)
-
         # Generate response — no chat session; we manage history in LangGraph state
         response = client.models.generate_content(
             model=settings.gemini_model,
@@ -294,7 +274,7 @@ def think_node(state: AgentState) -> dict[str, Any]:
 
     except Exception as exc:
         logger.exception("think_node error: %s", exc)
-        error_msg = f"Agent error: {exc}. Please check your Gemini API key configuration. Debug contents:\n{debug_str}"
+        error_msg = f"Agent error: {exc}. Please check your Gemini API key configuration."
         return {
             "final_answer": error_msg,
             "error": str(exc),
