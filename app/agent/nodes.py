@@ -127,6 +127,8 @@ def _build_genai_contents(messages: list) -> list:
                 # Restore model turn with function_call parts (including stored
                 # thought_signatures that were saved in additional_kwargs)
                 parts = []
+                if msg.content:
+                    parts.append(genai_types.Part.from_text(text=msg.content))
                 for tc in msg.additional_kwargs["tool_calls"]:
                     part = genai_types.Part.from_function_call(
                         name=tc["name"],
@@ -251,7 +253,7 @@ def think_node(state: AgentState) -> dict[str, Any]:
             logger.info("think_node: Gemini wants to call tool='%s'", fc["name"])
 
             ai_message = AIMessage(
-                content="",
+                content="\n".join(text_parts).strip(),
                 additional_kwargs={"tool_calls": function_calls},
             )
             return {
