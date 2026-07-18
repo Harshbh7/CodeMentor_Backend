@@ -130,14 +130,16 @@ def _build_genai_contents(messages: list) -> list:
                 if msg.content:
                     parts.append(genai_types.Part.from_text(text=msg.content))
                 for tc in msg.additional_kwargs["tool_calls"]:
-                    part = genai_types.Part(
-                        function_call=genai_types.FunctionCall(
+                    kwargs = {
+                        "function_call": genai_types.FunctionCall(
                             name=tc["name"],
                             args=tc["args"],
                             id=tc.get("id", ""),
-                        ),
-                        thought_signature=tc.get("thought_signature"),
-                    )
+                        )
+                    }
+                    if tc.get("thought_signature") is not None:
+                        kwargs["thought_signature"] = tc["thought_signature"]
+                    part = genai_types.Part(**kwargs)
                     parts.append(part)
                 contents.append(
                     genai_types.Content(role="model", parts=parts)
