@@ -129,6 +129,7 @@ class GeminiEmbedder:
                 contents=texts,
                 config=genai_types.EmbedContentConfig(
                     task_type=task_type,
+                    output_dimensionality=EMBEDDING_DIMENSIONS,
                 ),
             )
             # The new SDK returns an object with .embeddings as a list of ContentEmbedding

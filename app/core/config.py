@@ -104,7 +104,7 @@ class Settings(BaseSettings):
         default="gemini-1.5-pro", description="Gemini model for chat completions"
     )
     gemini_embedding_model: str = Field(
-        default="models/text-embedding-004",
+        default="models/gemini-embedding-001",
         description="Gemini model for generating text embeddings",
     )
 
