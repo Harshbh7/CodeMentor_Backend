@@ -1,6 +1,9 @@
 #!/bin/sh
 set -e
 
+# Set python path to current directory so that 'app' module can be found
+export PYTHONPATH=.
+
 # Run database migrations
 alembic upgrade head
 
