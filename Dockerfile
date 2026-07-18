@@ -58,6 +58,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Copy application code
 COPY --chown=appuser:appgroup . .
 
+# Make start.sh executable
+RUN chmod +x start.sh
+
 # Create required directories and set ownership
 RUN mkdir -p /app/uploads /app/chroma_data /app/logs && \
     chown -R appuser:appgroup /app
@@ -72,6 +75,5 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
     CMD curl --fail http://localhost:8000/api/v1/health || exit 1
 
-# Default command: run with Uvicorn
-# In production, increase --workers based on CPU count (2 * CPUs + 1 is a good rule)
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+# Default command: run the start script
+CMD ["./start.sh"]
