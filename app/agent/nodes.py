@@ -165,7 +165,6 @@ def _build_genai_contents(messages: list) -> list:
                     genai_types.Part.from_function_response(
                         name=tool_msg.name,
                         response={"result": tool_msg.content},
-                        id=tool_msg.tool_call_id,
                     )
                 )
                 i += 1
