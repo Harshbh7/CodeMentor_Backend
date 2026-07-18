@@ -215,7 +215,7 @@ class ChatService:
                 ),
                 tool_calls_used=[],
                 sources=[],
-                conversation_id=conversation_id,
+                conversation_id=conv_id_str,
                 iterations=0,
                 processing_time=round(processing_time, 3),
                 success=False,
