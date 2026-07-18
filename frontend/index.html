@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeMentor AI — Intelligent Coding Assistant</title>
+  <meta name="description"
+    content="AI-powered agentic coding assistant with RAG, code analysis, and real-time web search." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" />
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+    onload="window._katexReady=true"></script>
+  <style>
+    /* =========================================================
+       THEME DECLARATIONS & SYSTEM TOKENS
+       ========================================================= */
+    :root {
+      /* LIGHT THEME (SaaS Slate) */
+      --bg: #F9FAFB;
+      --sidebar-bg: #FFFFFF;
+      --card-bg: #FFFFFF;
+      --border: #E5E7EB;
+      --border-hover: #D1D5DB;
+
+      --text-main: #111827;
+      --text-muted: #6B7280;
+
+      --primary: #4F46E5;
+      --primary-hover: #4338CA;
+      --gradient: linear-gradient(135deg, #4F46E5 0%, #3B82F6 100%);
+      --gradient-light: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
+      --shadow-glow: 0 8px 20px -4px rgba(79, 70, 229, 0.25);
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-pill: 9999px;
+
+      --font: 'Inter', system-ui, -apple-system, sans-serif;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+      --sidebar-w: 280px;
+      --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+      /* Semantic mappings */
+      --header-bg: rgba(249, 250, 251, 0.8);
+      --accent-gradient: linear-gradient(180deg, rgba(79, 70, 229, 0.03) 0%, rgba(249, 250, 251, 0) 100%);
+      --hover-bg: rgba(0, 0, 0, 0.02);
+      --bubble-user-bg: #111827;
+      --bubble-user-text: #FFFFFF;
+      --send-btn-bg: #111827;
+      --send-btn-color: #FFFFFF;
+    }
+
+    [data-theme="dark"] {
+      /* DARK THEME (Midnight Obsidian) */
+      --bg: #090A0E;
+      --sidebar-bg: #12131A;
+      --card-bg: #1A1C26;
+      --border: #242735;
+      --border-hover: #35394F;
+
+      --text-main: #F3F4F6;
+      --text-muted: #9CA3AF;
+
+      --primary: #6366F1;
+      --primary-hover: #4F46E5;
+      --gradient: linear-gradient(135deg, #6366F1 0%, #3B82F6 100%);
+      --gradient-light: linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(59, 130, 246, 0.15) 100%);
+
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.25);
+      --shadow-glow: 0 8px 20px -4px rgba(99, 102, 241, 0.45);
+
+      /* Semantic mappings */
+      --header-bg: rgba(9, 10, 14, 0.85);
+      --accent-gradient: linear-gradient(180deg, rgba(99, 102, 241, 0.06) 0%, rgba(9, 10, 14, 0) 100%);
+      --hover-bg: rgba(255, 255, 255, 0.03);
+      --bubble-user-bg: var(--primary);
+      --bubble-user-text: #FFFFFF;
+      --send-btn-bg: var(--primary);
+      --send-btn-color: #FFFFFF;
+    }
+
+    /* =========================================================
+       RESET & BASE
+       ========================================================= */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      height: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      height: 100%;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    /* Background accents for premium feel */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 400px;
+      background: var(--accent-gradient);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* =========================================================
+       LAYOUT
+    ========================================================= */
+    .shell {
+      display: flex;
+      height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* =========================================================
+       SIDEBAR
+    ========================================================= */
+    .sidebar {
+      width: var(--sidebar-w);
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      z-index: 10;
+      box-shadow: 1px 0 10px rgba(0, 0, 0, 0.02);
+    }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 24px 20px 20px;
+    }
+
+    .logo-mark {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: var(--gradient);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .logo-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .logo-version {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    /* New Chat Btn */
+    .new-btn {
+      margin: 0 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border-radius: var(--radius-md);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s var(--ease);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .new-btn:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .new-btn .plus {
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    /* Section labels */
+    .sb-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 16px 20px 8px;
+    }
+
+    /* Tool rows */
+    .tool-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: default;
+      transition: background 0.2s;
+    }
+
+    .tool-row:hover {
+      background: var(--hover-bg);
+    }
+
+    .tool-icon {
+      font-size: 16px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .tool-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tool-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .tool-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .status-pip {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .pip-on {
+      background: #10B981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .pip-off {
+      background: #D1D5DB;
+    }
+
+    /* History list */
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      flex: 1;
+      padding: 0 12px;
+      margin-top: 4px;
+    }
+
+    .history-list::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .history-list::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 4px;
+    }
+
+    .hist-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 12px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+    }
+
+    .hist-title {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      min-width: 0;
+    }
+
+    .hist-item:hover {
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    .hist-item.active {
+      background: var(--gradient-light);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    /* Delete button — hidden by default, appears on hover */
+    .hist-del-btn {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      cursor: pointer;
+      opacity: 0;
+      transition: opacity 0.15s, background 0.15s, color 0.15s, transform 0.15s;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .hist-item:hover .hist-del-btn {
+      opacity: 1;
+    }
+
+    .hist-del-btn:hover {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      transform: scale(1.15);
+    }
+
+    /* Slide-out animation when item is deleted */
+    .hist-item.deleting {
+      animation: histDelete 0.3s ease forwards;
+    }
+
+    @keyframes histDelete {
+      0% {
+        opacity: 1;
+        transform: translateX(0);
+        max-height: 50px;
+      }
+
+      60% {
+        opacity: 0;
+        transform: translateX(30px);
+      }
+
+      100% {
+        opacity: 0;
+        max-height: 0;
+        padding: 0;
+        margin: 0;
+      }
+    }
+
+    /* Sidebar footer */
+    .sb-footer {
+      border-top: 1px solid var(--border);
+      padding: 16px 20px;
+      background: var(--sidebar-bg);
+    }
+
+    .api-status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+
+    .api-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      flex-shrink: 0;
+    }
+
+    .api-status-dot.on {
+      background: #10B981;
+    }
+
+    .api-status-dot.err {
+      background: #EF4444;
+    }
+
+    .api-status-text {
+      font-size: 13px;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .api-model {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* =========================================================
+       MAIN CHAT
+    ========================================================= */
+    .chat {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      position: relative;
+    }
+
+    /* ---- Header ---- */
+    .chat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 32px;
+      background: var(--header-bg);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+      flex-shrink: 0;
+    }
+
+    .head-left {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .head-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.2px;
+    }
+
+    .head-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .head-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .head-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: var(--radius-sm);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .head-btn:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    /* ---- Messages Container ---- */
+    .msgs-wrap {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+    }
+
+    .msgs-wrap::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .msgs-wrap::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .msgs-wrap::-webkit-scrollbar-thumb {
+      background: var(--border-hover);
+      border-radius: 10px;
+    }
+
+    .msgs-inner {
+      max-width: 840px;
+      margin: 0 auto;
+      padding: 40px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 32px;
+    }
+
+    /* ---- Welcome ---- */
+    .welcome {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 20px;
+      padding: 60px 20px 40px;
+      animation: fadeUp 0.6s var(--ease);
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .welcome-orbs {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: var(--gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: var(--shadow-glow);
+      margin-bottom: 8px;
+    }
+
+    .welcome h1 {
+      font-size: 36px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.8px;
+    }
+
+    .welcome-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      max-width: 540px;
+      line-height: 1.6;
+    }
+
+    /* Capabilities row */
+    .caps-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin: 8px 0 24px;
+    }
+
+    .cap-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Suggestion cards */
+    .sg-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .sg-card {
+      padding: 20px;
+      border-radius: var(--radius-lg);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s var(--ease);
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sg-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .sg-icon {
+      font-size: 24px;
+      width: 40px;
+      height: 40px;
+      background: var(--bg);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sg-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .sg-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* ---- Message rows ---- */
+    .msg-row {
+      display: flex;
+      gap: 20px;
+      animation: msgIn 0.4s var(--ease) both;
+    }
+
+    @keyframes msgIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-row.user {
+      flex-direction: row-reverse;
+    }
+
+    /* Avatars */
+    .av {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .av-user {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+    }
+
+    .av-ai {
+      background: var(--gradient);
+      color: white;
+    }
+
+    /* Bubbles */
+    .bubble-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-width: 80%;
+    }
+
+    .msg-row.user .bubble-wrap {
+      align-items: flex-end;
+    }
+
+    .bubble {
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    .bubble-user {
+      background: var(--bubble-user-bg);
+      color: var(--bubble-user-text);
+      padding: 14px 20px;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bubble-ai {
+      background: var(--card-bg);
+      color: var(--text-main);
+      padding: 20px 24px;
+      border-radius: 4px 18px 18px 18px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Markdown inside AI bubble */
+    .bubble-ai h1,
+    .bubble-ai h2,
+    .bubble-ai h3,
+    .bubble-ai h4 {
+      font-weight: 700;
+      margin: 28px 0 16px;
+      color: var(--text-main);
+      letter-spacing: -0.3px;
+    }
+
+    .bubble-ai h3 {
+      font-size: 18px;
+    }
+
+    .bubble-ai h4 {
+      font-size: 16px;
+    }
+
+    .bubble-ai p {
+      margin-bottom: 16px;
+    }
+
+    .bubble-ai p:last-child {
+      margin-bottom: 0;
+    }
+
+    .bubble-ai ul,
+    .bubble-ai ol {
+      padding-left: 24px;
+      margin-bottom: 16px;
+    }
+
+    .bubble-ai li {
+      margin-bottom: 8px;
+    }
+
+    .bubble-ai li::marker {
+      color: var(--primary);
+    }
+
+    .bubble-ai strong {
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .bubble-ai a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+      border-bottom: 1px solid transparent;
+      transition: 0.2s;
+    }
+
+    .bubble-ai a:hover {
+      border-color: var(--primary);
+    }
+
+    /* Inline code */
+    .bubble-ai code {
+      font-family: var(--mono);
+      font-size: 13.5px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 6px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    /* Code blocks */
+    .bubble-ai pre {
+      margin: 20px 0;
+      border-radius: var(--radius-md);
+      background: #0D1117;
+      /* Dark background for code blocks looks much more premium */
+      border: 1px solid #30363D;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #161B22;
+      border-bottom: 1px solid #30363D;
+    }
+
+    .code-lang {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: #8B949E;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .code-copy {
+      font-size: 12px;
+      color: #8B949E;
+      font-weight: 500;
+      cursor: pointer;
+      background: #21262D;
+      border: 1px solid #30363D;
+      padding: 4px 10px;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    .code-copy:hover {
+      background: #30363D;
+      color: #FFFFFF;
+      border-color: #8B949E;
+    }
+
+    .bubble-ai pre code {
+      background: transparent;
+      border: none;
+      padding: 20px;
+      font-size: 14px;
+      display: block;
+      overflow-x: auto;
+      color: #C9D1D9;
+      /* Default text color for dark mode code block */
+    }
+
+    /* Tables */
+    .bubble-ai table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14.5px;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bubble-ai th,
+    .bubble-ai td {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      text-align: left;
+    }
+
+    .bubble-ai th {
+      background: var(--bg);
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .bubble-ai td {
+      background: var(--card-bg);
+    }
+
+    /* Blockquote */
+    .bubble-ai blockquote {
+      border-left: 4px solid var(--primary);
+      padding: 12px 20px;
+      margin: 20px 0;
+      color: var(--text-muted);
+      background: var(--gradient-light);
+      border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-style: italic;
+    }
+
+    .bubble-ai hr {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+
+    /* Tool chips */
+    .msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      padding: 0 4px;
+    }
+
+    .tool-chip-sm {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--gradient-light);
+      border: 1px solid rgba(79, 70, 229, 0.2);
+      font-size: 12px;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .meta-time,
+    .meta-iters {
+      font-size: 12px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    /* ---- Valkey cache badge ---- */
+    .cache-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 9px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(251, 191, 36, 0.12));
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #f59e0b;
+      text-transform: uppercase;
+      box-shadow: 0 0 8px rgba(245, 158, 11, 0.2);
+      animation: cachePulse 1.8s ease-in-out infinite;
+    }
+
+    @keyframes cachePulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 6px rgba(245, 158, 11, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+      }
+    }
+
+    /* ---- Typing indicator ---- */
+    .typing-row {
+      display: flex;
+      gap: 20px;
+      animation: msgIn 0.4s var(--ease) both;
+    }
+
+    .typing-bubble {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: 4px 18px 18px 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .typing-inner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .thinking-label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .spin-icon {
+      animation: spin 1s linear infinite;
+      display: inline-block;
+      font-size: 16px;
+      color: var(--primary);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      margin-left: 8px;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      animation: dotBounce 1.4s infinite ease-in-out both;
+    }
+
+    .dot:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+
+    .dot:nth-child(2) {
+      animation-delay: -0.16s;
+    }
+
+    @keyframes dotBounce {
+
+      0%,
+      80%,
+      100% {
+        transform: scale(0);
+        opacity: 0.5;
+      }
+
+      40% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* =========================================================
+       INPUT BAR
+    ========================================================= */
+    .input-section {
+      flex-shrink: 0;
+      padding: 24px 32px 32px;
+      background: linear-gradient(to top, var(--bg) 60%, rgba(249, 250, 251, 0));
+      position: relative;
+      z-index: 20;
+    }
+
+    .input-shell {
+      max-width: 840px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .input-bar {
+      display: flex;
+      align-items: flex-end;
+      gap: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--border-hover);
+      border-radius: 24px;
+      padding: 14px 16px 14px 24px;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s var(--ease);
+    }
+
+    .input-bar:focus-within {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+
+    #msg-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text-main);
+      font-family: var(--font);
+      font-size: 15px;
+      resize: none;
+      min-height: 24px;
+      max-height: 240px;
+      padding: 4px 0;
+      line-height: 1.5;
+    }
+
+    #msg-input::placeholder {
+      color: #9CA3AF;
+    }
+
+    .input-actions {
+      display: flex;
+      align-items: flex-end;
+      padding-bottom: 2px;
+    }
+
+    .send-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: var(--send-btn-bg);
+      color: var(--send-btn-color);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      transition: all 0.2s;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .send-btn:hover {
+      background: var(--primary);
+      transform: scale(1.05);
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      background: var(--text-muted);
+    }
+
+    .input-footer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .input-hint {
+      font-size: 12px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    kbd {
+      font-family: var(--font);
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2px 6px;
+      font-weight: 600;
+      font-size: 11px;
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        display: none;
+      }
+
+      .msgs-inner {
+        padding: 24px 20px 20px;
+      }
+
+      .input-section {
+        padding: 16px 20px 24px;
+      }
+
+      .chat-head {
+        padding: 16px 20px;
+      }
+
+      .sg-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bubble-wrap {
+        max-width: 95%;
+      }
+    }
+
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+    }
+
+    .katex-display {
+      margin: 1em 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding: 6px 0;
+    }
+
+    .katex {
+      font-size: 1.05em;
+      color: var(--text-main);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="shell" role="main">
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar" aria-label="Navigation">
+
+      <div class="logo">
+        <div class="logo-mark">🤖</div>
+        <div>
+          <div class="logo-name">CodeMentor AI</div>
+          <div class="logo-version">v1.0 · Agentic RAG</div>
+        </div>
+      </div>
+
+      <button class="new-btn" id="new-chat-btn" onclick="startNewChat()" aria-label="Start new chat">
+        <span class="plus">＋</span>
+        New Chat
+      </button>
+
+      <div class="sb-label">Agent Tools</div>
+
+      <div class="tool-row">
+        <span class="tool-icon">📚</span>
+        <div class="tool-info">
+          <div class="tool-name">Knowledge Base</div>
+          <div class="tool-sub">RAG · ChromaDB</div>
+        </div>
+        <div class="status-pip pip-off" id="rag-pip" title="Requires ChromaDB Cloud"></div>
+      </div>
+      <div class="tool-row">
+        <span class="tool-icon">⚡</span>
+        <div class="tool-info">
+          <div class="tool-name">Cache</div>
+          <div class="tool-sub">Valkey · Sessions</div>
+        </div>
+        <div class="status-pip pip-off" id="valkey-pip" title="Valkey not connected"></div>
+      </div>
+      <div class="tool-row">
+        <span class="tool-icon">🧮</span>
+        <div class="tool-info">
+          <div class="tool-name">Calculator</div>
+          <div class="tool-sub">Math · Big-O eval</div>
+        </div>
+        <div class="status-pip pip-on"></div>
+      </div>
+      <div class="tool-row">
+        <span class="tool-icon">🔬</span>
+        <div class="tool-info">
+          <div class="tool-name">Code Analyzer</div>
+          <div class="tool-sub">Complexity · Bugs</div>
+        </div>
+        <div class="status-pip pip-on"></div>
+      </div>
+      <div class="tool-row">
+        <span class="tool-icon">🌐</span>
+        <div class="tool-info">
+          <div class="tool-name">Web Search</div>
+          <div class="tool-sub">DuckDuckGo · Live</div>
+        </div>
+        <div class="status-pip pip-on"></div>
+      </div>
+
+      <div class="sb-label" style="margin-top:10px">Recent Chats</div>
+      <div class="history-list" id="history-list">
+        <div class="hist-item" style="color:var(--tx3);font-size:11px;font-style:italic;padding:4px 10px">No history yet
+        </div>
+      </div>
+
+      <div class="sb-footer">
+        <div class="api-status" onclick="changeBackendURL()" style="cursor: pointer;"
+          title="Click to change Backend API URL">
+          <div class="api-status-dot" id="api-dot"></div>
+          <div>
+            <div class="api-status-text" id="api-text">Connecting…</div>
+            <div class="api-model" id="api-model"></div>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ===================== CHAT ===================== -->
+    <section class="chat" aria-label="Chat">
+
+      <!-- Header -->
+      <header class="chat-head">
+        <div class="head-left">
+          <div class="head-title" id="head-title">New Conversation</div>
+          <div class="head-sub" id="head-sub">Gemini · Agentic RAG · 4 tools active</div>
+        </div>
+        <nav class="head-actions">
+          <button class="head-btn theme-toggle-btn" id="theme-toggle-btn" onclick="toggleTheme()"
+            aria-label="Toggle theme">🌙 Dark</button>
+          <button class="head-btn" onclick="window.open('/docs','_blank')" aria-label="Open API docs">⚡ API
+            Docs</button>
+          <button class="head-btn" onclick="startNewChat()" aria-label="Clear chat">🗑 Clear</button>
+        </nav>
+      </header>
+
+      <!-- Messages -->
+      <div class="msgs-wrap" id="msgs-wrap" role="log" aria-live="polite" aria-label="Chat messages">
+        <div class="msgs-inner" id="msgs-inner">
+
+          <!-- Welcome -->
+
+          <div class="welcome" id="welcome-screen">
+            <div class="welcome-orbs">
+              ✨
+            </div>
+            <h1>CodeMentor AI</h1>
+            <p class="welcome-sub">Your intelligent coding companion powered by Gemini. Ask about algorithms, get code
+              reviewed, explore data structures, and much more.</p>
+
+            <div class="caps-row">
+              <span class="cap-chip">📚 RAG Search</span>
+              <span class="cap-chip">🧮 Calculator</span>
+              <span class="cap-chip">🔬 Code Review</span>
+              <span class="cap-chip">🌐 Web Search</span>
+            </div>
+
+            <div class="sg-grid">
+              <button class="sg-card"
+                onclick="sendSuggestion('What is the time complexity of quicksort? Explain best, average and worst cases.')">
+                <span class="sg-icon">⚡</span>
+                <div class="sg-title">Quicksort Analysis</div>
+                <div class="sg-desc">Time & space complexity breakdown with examples</div>
+              </button>
+              <button class="sg-card"
+                onclick="sendSuggestion('Explain BFS vs DFS with Python code examples. When should I use each?')">
+                <span class="sg-icon">🌳</span>
+                <div class="sg-title">BFS vs DFS</div>
+                <div class="sg-desc">Graph traversal algorithms compared side by side</div>
+              </button>
+              <button class="sg-card" onclick="sendSuggestion('Review this Python code and find bugs:
+                <span class=" sg-icon">🔬</span>
+                <div class="sg-title">Code Review</div>
+                <div class="sg-desc">Paste code and get detailed bug & complexity analysis</div>
+              </button>
+              <button class="sg-card"
+                onclick="sendSuggestion('What is dynamic programming? Explain with the Fibonacci example and show memoization vs tabulation.')">
+                <span class="sg-icon">🧠</span>
+                <div class="sg-title">Dynamic Programming</div>
+                <div class="sg-desc">Concept explained with hands-on code</div>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <!-- Input -->
+      <div class="input-section">
+        <div class="input-shell">
+          <div class="input-bar">
+            <textarea id="msg-input"
+              placeholder="Ask about algorithms, paste code for review, or explore any CS concept…" rows="1"
+              aria-label="Message input" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+            <div class="input-actions">
+              <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="Send message"
+                title="Send (Enter)">
+                ➤
+              </button>
+            </div>
+          </div>
+          <div class="input-footer">
+            <span class="input-hint"><kbd>Enter</kbd> to send</span>
+            <span class="input-hint"><kbd>Shift</kbd>+<kbd>Enter</kbd> for new line</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <!-- ===================== SCRIPTS ===================== -->
+  <script>
+    /* =====================================================
+       CONFIG & STATE
+    ===================================================== */
+    const getDefaultAPI = () => {
+      const stored = localStorage.getItem('BACKEND_API_URL');
+      const origin = window.location.origin;
+      const isProduction = !origin.includes('localhost') && !origin.includes('127.0.0.1') && !origin.startsWith('file://');
+      
+      // Self-healing: if loaded in production but stored is local, override and clear
+      if (isProduction && stored && (stored.includes('localhost') || stored.includes('127.0.0.1'))) {
+        localStorage.removeItem('BACKEND_API_URL');
+        return origin;
+      }
+
+      if (stored) return stored;
+
+      if (!isProduction) {
+        return 'https://codementor-api-963a.onrender.com';
+      }
+      return origin;
+    };
+    const API = getDefaultAPI();
+
+    function changeBackendURL() {
+      const current = API;
+      const newURL = prompt("Enter your Backend API URL (e.g. https://codementor-api.onrender.com):", current);
+      if (newURL !== null) {
+        const trimmed = newURL.trim();
+        if (trimmed) {
+          localStorage.setItem('BACKEND_API_URL', trimmed);
+        } else {
+          localStorage.removeItem('BACKEND_API_URL');
+        }
+        window.location.reload();
+      }
+    }
+    let conversationId = null;
+    let isLoading = false;
+    let msgCount = 0;
+
+    /* =====================================================
+       INIT
+     ===================================================== */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Default to dark mode for developer-focused layout
+      const savedTheme = localStorage.getItem('theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeButton(savedTheme);
+
+      checkHealth();
+      setInterval(checkHealth, 45000);
+      configureMarked();
+      loadHistory();
+    });
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeButton(newTheme);
+    }
+
+    function updateThemeButton(theme) {
+      const btn = document.getElementById('theme-toggle-btn');
+      if (btn) {
+        btn.innerHTML = theme === 'dark' ? '☀ Light' : '🌙 Dark';
+      }
+    }
+
+    async function checkHealth() {
+      const dot = document.getElementById('api-dot');
+      const txt = document.getElementById('api-text');
+      const mdl = document.getElementById('api-model');
+      const ragPip = document.getElementById('rag-pip');
+      const valkeyPip = document.getElementById('valkey-pip');
+      try {
+        const r = await fetch(`${API}/api/v1/health`, { signal: AbortSignal.timeout(12000) });
+        const data = await r.json();
+        if (r.ok && data.status === 'healthy') {
+          dot.className = 'api-status-dot on';
+          txt.textContent = 'API Connected ✓';
+          mdl.textContent = 'Gemini Flash · ' + (data.environment || 'dev');
+        } else if (r.ok) {
+          dot.className = 'api-status-dot err';
+          txt.textContent = 'API Degraded ⚠';
+          mdl.textContent = data.environment || 'dev';
+        } else throw new Error();
+
+        // ChromaDB RAG pip
+        const chromaOk = data.services && data.services.chromadb === 'healthy';
+        ragPip.className = 'status-pip ' + (chromaOk ? 'pip-on' : 'pip-off');
+        ragPip.title = chromaOk ? 'ChromaDB Cloud ✓' : 'ChromaDB offline';
+
+        // Valkey pip
+        const valkeyOk = data.services && data.services.valkey === 'healthy';
+        const valkeyConfigured = data.services && data.services.valkey !== 'not_configured';
+        if (valkeyOk) {
+          valkeyPip.className = 'status-pip pip-on';
+          valkeyPip.title = 'Valkey connected ✓';
+        } else if (!valkeyConfigured) {
+          valkeyPip.className = 'status-pip pip-off';
+          valkeyPip.title = 'Valkey not running (optional)';
+        } else {
+          valkeyPip.className = 'status-pip pip-off';
+          valkeyPip.title = 'Valkey offline';
+        }
+      } catch {
+        dot.className = 'api-status-dot err';
+        txt.textContent = 'API Offline';
+        mdl.textContent = 'Start the server to connect';
+        ragPip.className = 'status-pip pip-off';
+        ragPip.title = 'API Offline';
+        valkeyPip.className = 'status-pip pip-off';
+        valkeyPip.title = 'API Offline';
+      }
+    }
+
+    /* =====================================================
+       HISTORY
+     ===================================================== */
+    async function loadHistory() {
+      try {
+        const res = await fetch(`${API}/api/v1/conversations`);
+        if (!res.ok) return;
+        const list = await res.json();
+        const container = document.getElementById('history-list');
+        container.innerHTML = '';
+
+        if (!list || list.length === 0) {
+          container.innerHTML = `<div class="hist-item" style="color:var(--text-muted);font-size:11px;font-style:italic;padding:4px 10px">No history yet</div>`;
+          return;
+        }
+
+        list.forEach(conv => {
+          const item = document.createElement('div');
+          item.className = 'hist-item';
+          if (conversationId === conv.id) item.classList.add('active');
+          item.setAttribute('data-id', conv.id);
+
+          // Title span (clickable to load)
+          const titleSpan = document.createElement('span');
+          titleSpan.className = 'hist-title';
+          titleSpan.textContent = conv.title;
+          titleSpan.title = conv.title;
+          titleSpan.onclick = () => loadConversation(conv.id);
+
+          // Delete button (trash icon)
+          const delBtn = document.createElement('button');
+          delBtn.className = 'hist-del-btn';
+          delBtn.title = 'Delete this conversation';
+          delBtn.innerHTML = '🗑';
+          delBtn.setAttribute('aria-label', 'Delete conversation');
+          delBtn.onclick = (e) => {
+            e.stopPropagation(); // Prevent triggering loadConversation
+            deleteConversation(conv.id, item);
+          };
+
+          item.appendChild(titleSpan);
+          item.appendChild(delBtn);
+          container.appendChild(item);
+        });
+      } catch (err) {
+        console.error("Failed to load history list:", err);
+      }
+    }
+
+    async function deleteConversation(id, itemEl) {
+      // Trigger slide-out animation immediately for snappy feel
+      itemEl.classList.add('deleting');
+
+      try {
+        const res = await fetch(`${API}/api/v1/conversations/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          // If server error, remove animation and show error
+          itemEl.classList.remove('deleting');
+          console.error('Failed to delete conversation:', id);
+          return;
+        }
+
+        // If we deleted the currently active conversation, reset the chat UI
+        if (conversationId === id) {
+          conversationId = null;
+          startNewChat();
+        }
+
+        // Remove element after animation completes
+        setTimeout(() => {
+          itemEl.remove();
+          // If list is now empty, show placeholder
+          const container = document.getElementById('history-list');
+          if (!container.querySelector('.hist-item[data-id]')) {
+            container.innerHTML = `<div class="hist-item" style="color:var(--text-muted);font-size:11px;font-style:italic;padding:4px 10px">No history yet</div>`;
+          }
+        }, 320);
+
+      } catch (err) {
+        itemEl.classList.remove('deleting');
+        console.error('Network error deleting conversation:', err);
+      }
+    }
+
+    async function loadConversation(id) {
+      if (isLoading) return;
+      try {
+        const res = await fetch(`${API}/api/v1/conversations/${id}`);
+        if (!res.ok) throw new Error("Could not load conversation details.");
+        const data = await res.json();
+
+        conversationId = data.id;
+        msgCount = data.messages.length;
+
+        // Update active class in sidebar
+        const container = document.getElementById('history-list');
+        container.querySelectorAll('.hist-item').forEach(item => {
+          if (item.getAttribute('data-id') === id) {
+            item.classList.add('active');
+          } else {
+            item.classList.remove('active');
+          }
+        });
+
+        // Set title in header
+        document.getElementById('head-title').textContent = data.title;
+        document.getElementById('head-sub').textContent = 'Session active · Gemini · RAG';
+
+        // Clear and render messages
+        removeWelcome();
+        const inner = document.getElementById('msgs-inner');
+        inner.innerHTML = '';
+
+        data.messages.forEach(msg => {
+          const row = document.createElement('div');
+          if (msg.role === 'user') {
+            row.className = 'msg-row user';
+            row.innerHTML = `
+              <div class="av av-user" aria-hidden="true">👤</div>
+              <div class="bubble-wrap">
+                <div class="bubble bubble-user">${escHtml(msg.content).replace(/\n/g, '<br>')}</div>
+              </div>`;
+          } else {
+            row.className = 'msg-row ai';
+            row.innerHTML = `
+              <div class="av av-ai" aria-hidden="true">🤖</div>
+              <div class="bubble-wrap">
+                <div class="bubble bubble-ai">${renderMd(msg.content)}</div>
+              </div>`;
+
+            // Re-run hljs for preloaded code blocks
+            row.querySelectorAll('pre code:not(.hljs)').forEach(b => hljs.highlightElement(b));
+
+            // Render math expressions inside loaded message bubble
+            const bubble = row.querySelector('.bubble-ai');
+            if (bubble) renderMath(bubble);
+          }
+          inner.appendChild(row);
+          inner.appendChild(Object.assign(document.createElement('div'), { className: 'msg-divider' }));
+        });
+
+        scrollBottom(false);
+      } catch (err) {
+        // appendError(err.message || "Failed to load conversation messages.");
+      }
+    }
+
+    function addToHistory(title, id) {
+      loadHistory();
+    }
+
+
+    /* =====================================================
+       MARKDOWN
+    ===================================================== */
+    function configureMarked() {
+      if (!window.marked) return;
+      const renderer = new marked.Renderer();
+
+      // Custom code block with copy button + language label
+      renderer.code = (code, lang) => {
+        const language = (lang || 'plaintext').toLowerCase();
+        let highlighted = code;
+        if (window.hljs) {
+          try {
+            highlighted = hljs.getLanguage(language)
+              ? hljs.highlight(code, { language }).value
+              : hljs.highlightAuto(code).value;
+          } catch { }
+        }
+        const id = 'cb-' + Math.random().toString(36).slice(2);
+        return `<pre><div class="code-header">
+        <span class="code-lang">${language}</span>
+        <button class="code-copy" onclick="copyCode('${id}')">⎘ Copy</button>
+      </div><code id="${id}" class="hljs language-${language}">${highlighted}</code></pre>`;
+      };
+
+      marked.use({ renderer, breaks: true, gfm: true });
+    }
+
+    function renderMd(text) {
+      if (!window.marked) return `<p>${escHtml(text)}</p>`;
+      const html = marked.parse(text);
+      // KaTeX: render math after inserting into DOM (called by replaceTypingWithAnswer)
+      return html;
+    }
+
+    function renderMath(el) {
+      // Use KaTeX auto-render if available, otherwise fall back gracefully
+      if (window._katexReady && window.renderMathInElement) {
+        try {
+          renderMathInElement(el, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$', right: '$', display: false },
+              { left: '\\(', right: '\\)', display: false },
+              { left: '\\[', right: '\\]', display: true },
+            ],
+            throwOnError: false,
+            output: 'html',
+          });
+        } catch { }
+      } else if (window.katex) {
+        // Manual fallback for inline $...$ and block $$...$$
+        el.querySelectorAll('.math-inline').forEach(span => {
+          try { katex.render(span.textContent, span, { throwOnError: false }); } catch { }
+        });
+      }
+    }
+
+    function escHtml(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      navigator.clipboard.writeText(el.innerText).then(() => {
+        const btn = el.closest('pre').querySelector('.code-copy');
+        if (btn) { btn.textContent = '✓ Copied'; setTimeout(() => btn.textContent = '⎘ Copy', 2000); }
+      });
+    }
+
+    /* =====================================================
+       UI HELPERS
+    ===================================================== */
+    function autoResize(el) {
+      el.style.height = 'auto';
+      el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+    }
+
+    function scrollBottom(smooth = true) {
+      const w = document.getElementById('msgs-wrap');
+      w.scrollTo({ top: w.scrollHeight, behavior: smooth ? 'smooth' : 'instant' });
+    }
+
+    function removeWelcome() {
+      const w = document.getElementById('welcome-screen');
+      if (w) {
+        w.style.opacity = '0';
+        w.style.transform = 'translateY(-10px)';
+        w.style.transition = 'all .3s';
+        setTimeout(() => w?.remove(), 300);
+      }
+    }
+
+    function startNewChat() {
+      conversationId = null;
+      msgCount = 0;
+      isLoading = false;
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('msg-input').value = '';
+
+      // Reset messages
+      const inner = document.getElementById('msgs-inner');
+      inner.innerHTML = `
+        <div class="welcome" id="welcome-screen">
+          <div class="welcome-orbs">
+            ✨
+          </div>
+          <h1>CodeMentor AI</h1>
+          <p class="welcome-sub">Your intelligent coding companion powered by Gemini. Ask about algorithms, get code reviewed, explore data structures, and much more.</p>
+
+          <div class="caps-row">
+            <span class="cap-chip">📚 RAG Search</span>
+            <span class="cap-chip">🧮 Calculator</span>
+            <span class="cap-chip">🔬 Code Review</span>
+            <span class="cap-chip">🌐 Web Search</span>
+          </div>
+
+          <div class="sg-grid">
+            <button class="sg-card" onclick="sendSuggestion('What is the time complexity of quicksort? Explain best, average and worst cases.')">
+              <span class="sg-icon">⚡</span>
+              <div class="sg-title">Quicksort Analysis</div>
+              <div class="sg-desc">Time & space complexity breakdown with examples</div>
+            </button>
+            <button class="sg-card" onclick="sendSuggestion('Explain BFS vs DFS with Python code examples. When should I use each?')">
+              <span class="sg-icon">🌳</span>
+              <div class="sg-title">BFS vs DFS</div>
+              <div class="sg-desc">Graph traversal algorithms compared side by side</div>
+            </button>
+            <button class="sg-card" onclick="sendSuggestion('Review this Python code and find bugs:\\n\\ndef find_duplicate(nums):\\n    seen = []\\n    for n in nums:\\n        if n in seen: return n\\n        seen.append(n)\\n    return -1')">
+              <span class="sg-icon">🔬</span>
+              <div class="sg-title">Code Review</div>
+              <div class="sg-desc">Paste code and get detailed bug & complexity analysis</div>
+            </button>
+            <button class="sg-card" onclick="sendSuggestion('What is dynamic programming? Explain with the Fibonacci example and show memoization vs tabulation.')">
+              <span class="sg-icon">🧠</span>
+              <div class="sg-title">Dynamic Programming</div>
+              <div class="sg-desc">Concept explained with hands-on code</div>
+            </button>
+          </div>
+        </div>
+`;
+
+      document.getElementById('head-title').textContent = 'New Conversation';
+      document.getElementById('head-sub').textContent = 'Gemini · Agentic RAG · 4 tools active';
+      document.getElementById('msg-input').focus();
+      document.querySelectorAll('.hist-item').forEach(i => i.classList.remove('active'));
+    }
+
+    /* =====================================================
+       MESSAGE RENDERING
+    ===================================================== */
+    function appendUserMsg(text) {
+      removeWelcome();
+      msgCount++;
+
+      // Update title from first message
+      if (msgCount === 1) {
+        const short = text.slice(0, 42) + (text.length > 42 ? '…' : '');
+        document.getElementById('head-title').textContent = short;
+        document.getElementById('head-sub').textContent = 'Session active · Gemini · RAG';
+        addToHistory(short, conversationId || 'new');
+      }
+
+      const row = document.createElement('div');
+      row.className = 'msg-row user';
+      row.innerHTML = `
+      <div class="av av-user" aria-hidden="true">👤</div>
+      <div class="bubble-wrap">
+        <div class="bubble bubble-user">${escHtml(text).replace(/\n/g, '<br>')}</div>
+      </div>`;
+      document.getElementById('msgs-inner').appendChild(row);
+      document.getElementById('msgs-inner').appendChild(Object.assign(document.createElement('div'), { className: 'msg-divider' }));
+      scrollBottom();
+    }
+
+    function appendTyping() {
+      const id = 'ty-' + Date.now();
+      const row = document.createElement('div');
+      row.className = 'typing-row';
+      row.id = id;
+      row.setAttribute('aria-label', 'AI is thinking');
+      row.innerHTML = `
+      <div class="av av-ai" aria-hidden="true">🤖</div>
+      <div class="typing-bubble">
+        <div class="typing-inner">
+          <div class="thinking-label" id="${id}-label">
+            <span class="spin-icon">⚙</span> Agent is reasoning…
+          </div>
+          <div class="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+        </div>
+      </div>`;
+      document.getElementById('msgs-inner').appendChild(row);
+      scrollBottom();
+      return id;
+    }
+
+    function updateTypingLabel(id, toolName) {
+      const el = document.getElementById(id + '-label');
+      if (!el) return;
+      const icons = { search_knowledge_base: '📚', calculate: '🧮', analyze_code: '🔬', web_search: '🌐' };
+      el.innerHTML = `<span class="spin-icon">⚙</span> Calling <strong style="color:var(--t)">${icons[toolName] || '🔧'} ${toolName}</strong>…`;
+    }
+
+    function replaceTypingWithAnswer(id, data) {
+      const el = document.getElementById(id);
+      if (!el) return;
+
+      const tools = (data.tool_calls_used || []).map(t => {
+        const icons = { search_knowledge_base: '📚', calculate: '🧮', analyze_code: '🔬', web_search: '🌐' };
+        return `<span class="tool-chip-sm">${icons[t.tool_name] || '🔧'} ${t.tool_name}</span>`;
+      }).join('');
+
+      const time = data.processing_time ? `⚡ ${data.processing_time.toFixed(2)}s` : '';
+      const iters = data.iterations ? `${data.iterations} step${data.iterations !== 1 ? 's' : ''}` : '';
+      const cachedBadge = data.cached
+        ? `<span class="cache-badge" title="Served instantly from Valkey cache">⚡ Cached</span>`
+        : '';
+
+      el.className = 'msg-row ai';
+      el.removeAttribute('aria-label');
+      el.innerHTML = `
+      <div class="av av-ai" aria-hidden="true">🤖</div>
+      <div class="bubble-wrap">
+        <div class="bubble bubble-ai">${renderMd(data.answer || '(No response)')}</div>
+        ${(tools || time || cachedBadge) ? `<div class="msg-meta">
+          ${cachedBadge}
+          ${tools}
+          ${iters ? `<span class="meta-iters">🔁 ${iters}</span>` : ''}
+          ${time ? `<span class="meta-time">${time}</span>` : ''}
+        </div>` : ''}
+      </div>`;
+
+      // Re-run hljs on any code blocks that weren't pre-highlighted
+      el.querySelectorAll('pre code:not(.hljs)').forEach(b => hljs.highlightElement(b));
+
+      // Render math expressions inside the AI bubble with KaTeX
+      const bubble = el.querySelector('.bubble-ai');
+      if (bubble) {
+        // If KaTeX auto-render is ready, use it; else retry after a short delay
+        if (window._katexReady) {
+          renderMath(bubble);
+        } else {
+          // KaTeX may still be loading (deferred script), retry up to 3s
+          const wait = (ms) => new Promise(r => setTimeout(r, ms));
+          (async () => {
+            for (let i = 0; i < 6; i++) {
+              await wait(500);
+              if (window._katexReady) { renderMath(bubble); break; }
+            }
+          })();
+        }
+      }
+
+      document.getElementById('msgs-inner').appendChild(Object.assign(document.createElement('div'), { className: 'msg-divider' }));
+      scrollBottom();
+    }
+
+    function appendError(msg) {
+      const row = document.createElement('div');
+      row.className = 'msg-row ai';
+      row.innerHTML = `
+      <div class="av av-ai" aria-hidden="true">🤖</div>
+      <div class="bubble-wrap">
+        <div class="bubble bubble-ai" style="border-color:rgba(248,113,113,.3)">
+          <span style="color:var(--err)">⚠️</span> ${escHtml(msg)}
+        </div>
+      </div>`;
+      document.getElementById('msgs-inner').appendChild(row);
+      scrollBottom();
+    }
+
+    /* =====================================================
+       SEND
+    ===================================================== */
+    function handleKey(e) {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+    }
+
+    function sendSuggestion(text) {
+      document.getElementById('msg-input').value = text;
+      sendMessage();
+    }
+
+    async function sendMessage() {
+      const input = document.getElementById('msg-input');
+      const text = input.value.trim();
+      if (!text || isLoading) return;
+
+      isLoading = true;
+      input.value = '';
+      input.style.height = 'auto';
+      document.getElementById('send-btn').disabled = true;
+
+      appendUserMsg(text);
+      const typId = appendTyping();
+
+      try {
+        const body = { query: text };
+        if (conversationId) body.conversation_id = conversationId;
+
+        const res = await fetch(`${API}/api/v1/chat`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || `Server error ${res.status}`);
+        }
+
+        const data = await res.json();
+        conversationId = data.conversation_id;
+
+        // Brief tool flash
+        if (data.tool_calls_used?.length) {
+          updateTypingLabel(typId, data.tool_calls_used[0].tool_name);
+          await new Promise(r => setTimeout(r, 350));
+        }
+
+        replaceTypingWithAnswer(typId, data);
+
+        // Refresh sidebar so new/updated conversation appears immediately with delete icon
+        loadHistory();
+
+      } catch (err) {
+        document.getElementById(typId)?.remove();
+        appendError(err.message || 'Something went wrong. Make sure the server is running.');
+      } finally {
+        isLoading = false;
+        document.getElementById('send-btn').disabled = false;
+        input.focus();
+      }
+    }
+  </script>
+
+</body>
+
+</html>
