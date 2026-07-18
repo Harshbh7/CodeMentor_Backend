@@ -275,8 +275,9 @@ def think_node(state: AgentState) -> dict[str, Any]:
             }
 
     except Exception as exc:
+        import google.genai
         logger.exception("think_node error: %s", exc)
-        error_msg = f"Agent error: {exc}. Please check your Gemini API key configuration."
+        error_msg = f"Agent error: {exc}. google-genai version: {google.genai.__version__}. Please check your Gemini API key configuration."
         return {
             "final_answer": error_msg,
             "error": str(exc),
