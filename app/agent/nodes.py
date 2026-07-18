@@ -164,9 +164,12 @@ def _build_genai_contents(messages: list) -> list:
             while i < len(messages) and isinstance(messages[i], ToolMessage):
                 tool_msg = messages[i]
                 tool_parts.append(
-                    genai_types.Part.from_function_response(
-                        name=tool_msg.name,
-                        response={"result": tool_msg.content},
+                    genai_types.Part(
+                        function_response=genai_types.FunctionResponse(
+                            name=tool_msg.name,
+                            response={"result": tool_msg.content},
+                            id=tool_msg.tool_call_id,
+                        )
                     )
                 )
                 i += 1
