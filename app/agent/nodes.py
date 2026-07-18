@@ -101,9 +101,12 @@ def _build_genai_contents(messages: list) -> list:
     contents = []
     system_injected = False
 
-    for msg in messages:
+    i = 0
+    while i < len(messages):
+        msg = messages[i]
         if isinstance(msg, SystemMessage):
             # Injected below into the first user message
+            i += 1
             continue
 
         if isinstance(msg, HumanMessage):
@@ -117,6 +120,7 @@ def _build_genai_contents(messages: list) -> list:
                     parts=[genai_types.Part.from_text(text=text)],
                 )
             )
+            i += 1
 
         elif isinstance(msg, AIMessage):
             if msg.additional_kwargs.get("tool_calls"):
@@ -149,19 +153,29 @@ def _build_genai_contents(messages: list) -> list:
                         parts=[genai_types.Part.from_text(text=msg.content or "")],
                     )
                 )
+            i += 1
 
         elif isinstance(msg, ToolMessage):
+            # Group consecutive ToolMessages into a single Content object (user turn)
+            # This is required by Gemini for parallel function calling.
+            tool_parts = []
+            while i < len(messages) and isinstance(messages[i], ToolMessage):
+                tool_msg = messages[i]
+                tool_parts.append(
+                    genai_types.Part.from_function_response(
+                        name=tool_msg.name,
+                        response={"result": tool_msg.content},
+                    )
+                )
+                i += 1
             contents.append(
                 genai_types.Content(
                     role="user",
-                    parts=[
-                        genai_types.Part.from_function_response(
-                            name=msg.name,
-                            response={"result": msg.content},
-                        )
-                    ],
+                    parts=tool_parts,
                 )
             )
+        else:
+            i += 1
 
     return contents
 
